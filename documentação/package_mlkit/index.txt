@@ -1,0 +1,101 @@
+Titulo: Estudos sobre as API's publicas mais úteis na linguagem java.
+
+
+---> Gateway da API Google Translation mlkit
+
+
+---> Principais dependências build.gradle:
+    
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 33
+    
+    defaultConfig {
+        applicationId "com.ashencostha.mlkittranslations"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.mlkit:translate:17.0.1'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+   
+---> Exemplo basico de implementação:
+    
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;    
+
+import com.google.mlkit.nl.translate.Translation;
+import com.google.mlkit.nl.translate.Translator;
+import com.google.mlkit.nl.translate.TranslatorOptions;
+
+public class MainActivity extends AppCompatActivity {
+
+    TranslatorOptions options = new TranslatorOptions.Builder()
+                           .setTargetLanguage("br")
+                           .setSourceLanguage("en")
+                           .build();
+   
+    Translator translator = Translation.getClient(options);
+    String sourceText = "Hello, world!;
+                    
+    ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+    progressDialog.setMessage("Downloading the translation model...");
+    progressDialog.setCancelable(false);
+    progressDialog.show();
+
+    translator.downloadModelIfNeeded().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        
+        @Override
+        public void onSuccess(Void unused) {
+            progressDialog.dismiss();
+        }
+    }).addOnFailureListener(new OnFailureListener() {
+         
+        @Override
+        public void onFailure(@NonNull Exception e) {
+            progressDialog.dismiss();
+        }
+    });
+
+    Task<String> result = translator.translate(sourceText).addOnSuccessListener(new OnSuccessListener<String>() {
+        @Override
+        public void onSuccess(String s) {
+            Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+        }
+    }).addOnFailureListener(new OnFailureListener() {
+        @Override
+        public void onFailure(@NonNull Exception e) {
+            Toast.makeText(MainActivity.this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+
+
